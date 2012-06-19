@@ -198,6 +198,21 @@ class TestCase(object):
                         # for teardown methods though, we want the opposite
                         setattr(self, "%s_fixtures" % fixture_type, bound_fixture_methods + getattr(self, "%s_fixtures" % fixture_type))
 
+        for fixture_type, fixture_methods in cls._fixture_methods.iteritems():
+            fixtures = getattr(self, "%s_fixtures" % fixture_type)
+            names = [f.__func__.__name__ for f in fixtures]
+            unique_names = set(names)
+
+            duplicates = [name for name in unique_names if names.count(name) > 1]
+
+            if len(unique_names) != len(fixtures):
+                idx = hierarchy.index(type(self))
+                base_name = hierarchy[idx-1].__name__
+                this_name = self.__class__.__name__
+                def space(name):
+                    return ' ' * (50 - len(name))
+                print '***', base_name, space(base_name), this_name, space(this_name), duplicates
+
     def _generate_test_method(self, method_name, function):
         """Allow tests to define new test methods in their __init__'s and have appropriate suites applied."""
         suite(*getattr(self, '_suites', set()))(function)
